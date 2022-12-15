@@ -1,0 +1,64 @@
+version: '3'
+services:
+  nginx:
+    profiles: ["nginx"]
+    container_name: some-nginx
+    image: nginx:1.20
+    restart: always
+    ports:
+    - 80:80
+    - 443:443
+    volumes:
+    - ./nginx/conf.d:/etc/nginx/conf.d
+    - ./apps/cffadmin:/opt/coinfufu/apps/cffadmin
+ 
+  mysql:
+    container_name: some-mysql
+    image: mysql:5.7
+    environment:
+     - MYSQL_DATABASE=CoinFuFuDB
+     - MYSQL_ROOT_PASSWORD=CoinFuFu@123
+     #- MYSQL_ROOT_HOST='%'
+    volumes:
+     - ./mysql/conf.d:/etc/mysql/conf.d
+     - ./mysql/data:/var/lib/mysql
+    ports:
+     - "23306:3306"
+    restart: always
+
+  redis:
+    container_name: some_redis
+    image: redis:6.0
+    volumes:
+     - ./redis/data:/data
+    ports:
+     - "16379:6379"
+    restart: always
+  
+  app:
+    profiles: ["app"]
+    restart: always
+    build: ./apps
+    working_dir: /apps
+    volumes:
+      - ./apps:/apps
+      - ~/.m2:/root/.m2
+    expose:
+      - "8080"
+    ports:
+      - "8080:8080"
+    command: mvn clean spring-boot:run
+    depends_on:
+      - mysql
+      - redis
+
+  admin:
+    restart: always
+    build: ./apps/cffadmin_api
+    working_dir: /app
+    command: ./management-backend
+    volumes:
+      - ./apps/cffadmin_api:/app
+    ports:
+      - 16828:16828
+    

@@ -1,0 +1,15 @@
+version: "3.9"
+
+services:
+    jenkins:
+        image: "jenkinsci/blueocean"
+        ports:
+            - 8080:8080
+            - 50000:50000
+        volumes:
+            - ./data:/var/jenkins_home
+            - /var/run/docker.sock:/var/run/docker.sock
+            - /root/.m2:/root/.m2
+            - /root/workspace:/root/workspace
+        restart: always
+
